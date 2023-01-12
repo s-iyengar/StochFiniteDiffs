@@ -1,7 +1,7 @@
 import Random
 
 #Utility functions for Gillespie
-function CDFsample(rng::Random.AbstractRNG, weights::Vector{Float},n::Int, weightsum::Float)
+function CDFsample(rng::Random.AbstractRNG, weights::Vector{Float64},n::Int, weightsum::Float64)
     t = rand(rng) * weightsum
     i = 1
     cuw = weights[1] #current cumulative sum
@@ -26,7 +26,7 @@ end
 #rng: any generator, best is Random.MersenneTwister()
 #numsteps: minimum number of times each reaction should occur before simulation stops
 #maxsteps: maximum number of steps before stopping simulation
-function direct_gillespie(statevector::Vector{UInt},params::Vector{Float},outcomes::Array{Int},rate_calc!::Function,
+function direct_gillespie!(statevector::Vector{UInt},params::Vector{Float64},outcomes::Array{Int},rate_calc!::Function,
                             calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::UInt,maxsteps::UInt)
 
     numreactions = size(outcomes)
@@ -41,7 +41,7 @@ function direct_gillespie(statevector::Vector{UInt},params::Vector{Float},outcom
         zerorates .= rates .== 0
         if all(zerorates)
             println("All rates trivially zero at state $(statevector) after $(steps) steps")
-            return calcstor
+            return statevector,steps
         end
         totalrate = sum(rates)
         reaction = CDFsample(rng,rates,numreactions,totalrate)
@@ -56,5 +56,5 @@ function direct_gillespie(statevector::Vector{UInt},params::Vector{Float},outcom
             stoppingvec[reaction] = false
         end
     end
-    return calcstor
+    return statevector,steps
 end
