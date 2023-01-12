@@ -25,7 +25,7 @@ mutable struct BalanceEqData
     
 end
 #Valid update function method.
-function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vector{Float64},weight)
+function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vector{Float64},params,weight)
     #States: [x,y]
     #Rates: [RpX,RmX,RpY,RmY]
     storage.weightsum += weight

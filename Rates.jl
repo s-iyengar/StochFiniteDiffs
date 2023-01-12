@@ -29,7 +29,7 @@ function cov_balance_comp(CiRmj,CjRmi,Dij,CiRpj,CjRpi)
     return relative_error(RHS,LHS)
 end
 
-function tt_protein_fb_rates!(state::Vector{Int64},params::Vector{Float64},rates::Vector{Float64})
+function tt_protein_fb_rates!(state::Vector,params::Vector,rates::Vector)
     rates[1] = hillfunction(params[1],params[5],params[6],state[2])
     rates[2] = linearrate(params[2],state[1])
     rates[3] = linearrate(params[3],state[1])

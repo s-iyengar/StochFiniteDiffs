@@ -26,10 +26,10 @@ end
 #rng: any generator, best is Random.MersenneTwister()
 #numsteps: minimum number of times each reaction should occur before simulation stops
 #maxsteps: maximum number of steps before stopping simulation
-function direct_gillespie!(statevector::Vector{UInt},params::Vector{Float64},outcomes::Array{Int},rate_calc!::Function,
-                            calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::UInt,maxsteps::UInt)
+function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outcomes::Array{Int},rate_calc!::Function,
+                            calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::Int,maxsteps::Int)
 
-    numreactions = size(outcomes)
+    numreactions,statevars = size(outcomes)
     reactioncounters = fill(numsteps,numreactions)
     stoppingvec = reactioncounters .!= 0
     steps = 0
