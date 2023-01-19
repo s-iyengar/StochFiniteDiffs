@@ -71,3 +71,12 @@ function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vecto
     storage.CYRpY += weight*dRpY*ydiff
     return nothing
 end
+
+mutable struct Balance_with_Derivatives
+    balancedata::BalanceEqData
+    meanF_x::Float64
+    meanF_y::Float64
+    function Balance_with_Derivatives()
+        return new(BalanceEqData,0,0)
+    end
+end
