@@ -2,7 +2,6 @@
 mutable struct BalanceEqData
     meanx::Float64
     meany::Float64
-    weightsum::Float64
     VX::Float64
     VY::Float64
     CXY::Float64
@@ -19,17 +18,18 @@ mutable struct BalanceEqData
     CYRmY::Float64
     CYRpY::Float64
 
+    meanF_y::Float64
+
     function BalanceEqData()
         return new(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
     end
     
 end
 #Valid update function method.
-function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vector{Float64},params,weight)
+function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vector{Float64},params,weight,weightsum)
     #States: [x,y]
     #Rates: [RpX,RmX,RpY,RmY]
-    storage.weightsum += weight
-    rw = weight/storage.weightsum
+    rw = weight/weightsum
 
     x = state[1]
     y = state[2]
@@ -45,6 +45,7 @@ function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vecto
     dRmX = RmX - storage.meanRmX
     dRpY = RpY - storage.meanRpY
     dRmY = RmY - storage.meanRmY
+    dF_Y = hill_derivative(params[1],params[5],params[6],state[2]) - storage.meanF_y
 
     storage.meanx += (rw)*dx
     storage.meany += (rw)*dy
@@ -52,6 +53,8 @@ function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vecto
     storage.meanRmX += (rw)*dRmX
     storage.meanRpY += (rw)*dRpY
     storage.meanRmY += (rw)*dRmY
+
+    storage.meanF_y += rw*dF_Y
 
     xdiff = x - storage.meanx
     ydiff = y - storage.meany
@@ -72,11 +75,25 @@ function updatestorage!(storage::BalanceEqData,state::Vector{Int64},rates::Vecto
     return nothing
 end
 
-mutable struct Balance_with_Derivatives
-    balancedata::BalanceEqData
-    meanF_x::Float64
-    meanF_y::Float64
-    function Balance_with_Derivatives()
-        return new(BalanceEqData,0,0)
+function hill_derivative(lambda::Float64,n::Float64,K::Float64,x::Int64)::Float64
+    if(x==0)
+        return 0
     end
+    return lambda*n*x^(n-1)*K^n/(K^n+x^n)^2
+end
+
+mutable struct Balance_with_Derivative
+    balancedata::BalanceEqData
+    meanF_y::Float64
+    function Balance_with_Derivative()
+        return new(BalanceEqData(),0)
+    end
+end
+
+function updatestorage!(storage::Balance_with_Derivative,state::Vector{Int64},rates::Vector{Float64},params,weight,weightsum)
+    updatestorage!(storage.balancedata,state,rates,params,weight,weightsum)
+    #params: [lambda,beta_m,gamma,beta_p,n,K]
+    dF_y = hill_derivative(params[1],params[5],params[6],state[2]) - storage.meanF_y
+    storage.meanF_y += (weight/weightsum)*dF_y 
+    return nothing
 end

@@ -27,16 +27,16 @@ end
 #numsteps: minimum number of times each reaction should occur before simulation stops
 #maxsteps: maximum number of steps before stopping simulation
 function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outcomes::Array{Int},rate_calc!::Function,
-                            calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::Int,maxsteps::Int)
+                            calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::Int64,maxsteps::Int64,ntherm::Int64)
 
     numreactions,statevars = size(outcomes)
     reactioncounters = fill(numsteps,numreactions)
     stoppingvec = reactioncounters .!= 0
     steps = 0
+    totaltime = 0
     rates = Vector{Float64}(undef,numreactions)
     zerorates = Vector{Bool}(undef,numreactions)
-
-    while (steps <= maxsteps) & (any(stoppingvec))
+    for i in 1:ntherm
         rate_calc!(statevector,params,rates)
         zerorates .= rates .== 0
         if all(zerorates)
@@ -45,10 +45,27 @@ function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outc
         end
         totalrate = sum(rates)
         reaction = CDFsample(rng,rates,numreactions,totalrate)
-        timestep = log(1/rand(rng))/totalrate
+        #Don't update the time: that's only useful for averages
         delta = view(outcomes,reaction,:)
         statevector .+= delta
-        updatestorage!(calcstor,statevector,rates,params,timestep)
+        #Don't update the storage here!
+        steps += 1
+    end
+
+    while (steps <= maxsteps) & (any(stoppingvec))
+        rate_calc!(statevector,params,rates)
+        zerorates .= rates .== 0
+        if all(zerorates)
+            println("All rates trivially zero at state $(statevector) after $(steps) steps")
+            return statevector,steps,totaltime
+        end
+        totalrate = sum(rates)
+        reaction = CDFsample(rng,rates,numreactions,totalrate)
+        timestep = log(1/rand(rng))/totalrate
+        totaltime += timestep
+        delta = view(outcomes,reaction,:)
+        statevector .+= delta
+        updatestorage!(calcstor,statevector,rates,params,timestep,totaltime)
         steps += 1
         reactioncounters[reaction] -= 1
         if reactioncounters[reaction] <= 0
@@ -56,5 +73,40 @@ function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outc
             stoppingvec[reaction] = false
         end
     end
-    return statevector,steps
+    return statevector,steps,totaltime
+end
+
+function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outcomes::Array{Int},rate_calc!::Function,
+    calcstor,updatestorage!::Function,rng::Random.AbstractRNG,numsteps::Int,maxsteps::Int)
+
+    numreactions,statevars = size(outcomes)
+    reactioncounters = fill(numsteps,numreactions)
+    stoppingvec = reactioncounters .!= 0
+    steps = 0
+    totaltime = 0
+    rates = Vector{Float64}(undef,numreactions)
+    zerorates = Vector{Bool}(undef,numreactions)
+
+    while (steps <= maxsteps) & (any(stoppingvec))
+        rate_calc!(statevector,params,rates)
+        zerorates .= rates .== 0
+        if all(zerorates)
+            println("All rates trivially zero at state $(statevector) after $(steps) steps")
+            return statevector,steps,totaltime
+        end
+        totalrate = sum(rates)
+        reaction = CDFsample(rng,rates,numreactions,totalrate)
+        timestep = log(1/rand(rng))/totalrate
+        totaltime += timestep
+        delta = view(outcomes,reaction,:)
+        statevector .+= delta
+        updatestorage!(calcstor,statevector,rates,params,timestep,totaltime)
+        steps += 1
+        reactioncounters[reaction] -= 1
+        if reactioncounters[reaction] <= 0
+            reactioncounters[reaction] = 0
+            stoppingvec[reaction] = false
+        end
+    end
+    return statevector,steps,totaltime
 end

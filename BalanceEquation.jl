@@ -2,7 +2,6 @@ struct BalanceEquationData2D
     #For a 2D system, stores means, variances, covariance
     #Stores mean fluxes (plus and minus) for each state
     #stores covairances of fluxes with states
-    weightsum::Vector{Float64}
 
     means::Vector{Float64}
     #Variances: Vx,Vy,Cxy
@@ -20,27 +19,27 @@ struct BalanceEquationData2D
     diff::Vector{Float64}
     
     function BalanceEquationData2D()
-        return new(zeros(1),zeros(2),zeros(2,2),zeros(4),zeros(2,4),zeros(2),zeros(4),zeros(2))
+        return new(zeros(2),zeros(2,2),zeros(4),zeros(2,4),zeros(2),zeros(4),zeros(2))
     end
 end
 
-function updatestorage!(storage::BalanceEquationData2D,statevector::Vector{Int64},rates::Vector{Int64},params::Vector{Float64},jumptime::Float64,simtime::Float64)
+function updatestorage!(storage::BalanceEquationData2D,statevector::Vector{Int64},rates::Vector{Float64},params::Vector{Float64},jumptime::Float64,simtime::Float64)
     rw = jumptime/simtime
 
-    storage.dmeans .= statevector .- storage.means
+    storage.dmeans .= statevector - storage.means
 
-    storage.dfluxes .= rates .- storage.meanfluxes
+    storage.dfluxes .= rates - storage.meanfluxes
 
     storage.means .+= rw * storage.dmeans
     storage.meanfluxes .+= rw * storage.dfluxes
 
-    storage.diff .= statevector .- storage.means
+    storage.diff .= statevector - storage.means
 
-    storage.statevariances .+= weight * storage.dmeans .* storage.diff'
+    storage.statevariances .+= jumptime * storage.dmeans * storage.diff'
 
     #Rows are first untransposed vector, columns second transposed one
     #So here, two rows with four columns, with cols Rpx,Rmx,Rpy,Rmy
-    storage.statefluxcovs .+= weight * storage.diff .* storage.dfluxes'
+    storage.statefluxcovs .+= jumptime * storage.diff * storage.dfluxes'
     return nothing
 end
 
