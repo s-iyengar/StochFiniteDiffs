@@ -41,7 +41,7 @@ function direct_gillespie!(statevector::Vector{Int},params::Vector{Float64},outc
         zerorates .= rates .== 0
         if all(zerorates)
             println("All rates trivially zero at state $(statevector) after $(steps) steps")
-            return statevector,steps
+            return statevector,steps,totaltime
         end
         totalrate = sum(rates)
         reaction = CDFsample(rng,rates,numreactions,totalrate)
