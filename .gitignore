@@ -1,0 +1,12 @@
+CppVersion/gillespie.cpp
+CppVersion/pertsim_utils.hpp
+pertresults/2023-Jan24_1237_res.csv
+pertresults/2023-Jan24_1339_res.csv
+pertresults/2023-Jan24_1352_res.csv
+pertresults/2023-Jan24_1511_res.csv
+pertresults/2023-Jan24_1728_res.csv
+pertresults/2023-Jan24_1827_res.csv
+pertresults/2023-Jan24_2156_res.csv
+CppVersion/cov_test.cpp
+CppVersion/gillespie.hpp
+data.csv
