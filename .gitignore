@@ -259,3 +259,4 @@ old_no_fb_sims/no_fb_sims_stderrtest_2023-02-06/paramset_10_simresults.tsv
 test_no_fb_sims_test/.DS_Store
 test_no_fb_sims_test/paramset_1_settings.tsv
 test_no_fb_sims_test/paramset_1_simresults.tsv
+.DS_Store
