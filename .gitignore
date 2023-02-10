@@ -330,3 +330,4 @@ independentdisttesting/no_fb_sims_indtest_withcorrsmaybe_2023-02-09/paramset_2_s
 independentdisttesting/no_fb_sims_indtest_withcorrsmaybe_2023-02-09/paramset_3_settings.tsv
 independentdisttesting/no_fb_sims_indtest_withcorrsmaybe_2023-02-09/paramset_3_simresults.tsv
 .gitignore
+output.png
