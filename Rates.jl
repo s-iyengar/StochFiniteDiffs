@@ -36,3 +36,11 @@ function tt_protein_fb_rates!(state::Vector,params::Vector,rates::Vector)
     rates[4] = linearrate(params[4],state[2])
     return nothing
 end
+
+function tt_mRNA_fb_rates!(state::Vector,params::Vector,rates::Vector)
+    rates[1] = hillfunction(params[1],params[5],params[6],state[1])
+    rates[2] = linearrate(params[2],state[1])
+    rates[3] = linearrate(params[3],state[1])
+    rates[4] = linearrate(params[4],state[2])
+    return nothing
+end
